@@ -17,6 +17,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
 
+    .AddEndpointsApiExplorer()
+
+    .AddSwaggerGen()
+
     .AddIOBox(builder.Configuration)
 
     .AddIOBoxSqlServer(builder.Configuration)
@@ -32,9 +36,13 @@ var app = builder.Build();
 
 app.UseHttpsRedirection();
 
-app.UseIOBox(builder.Configuration);
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-MigrateDb(builder.Configuration);
+app.UseIOBox(builder.Configuration);
 
 app.MapPost("members", async (
     IConfiguration configuration,
@@ -91,6 +99,8 @@ app.MapPost("members", async (
 
     return Results.Ok();
 });
+
+MigrateDb(builder.Configuration);
 
 app.Run();
 

@@ -22,8 +22,8 @@ services:
       - IOBox__Outboxes__1__Database__ConnectionString=${MSSQL_CONNECTIONSTRING}
       - IOBox__Outboxes__1__Database__DefaultConnectionString=${MSSQL_DEFAULTCONNECTIONSTRING}
     ports:
-      - 80:80
-      - 443:443
+      - 5000:80
+      - 5001:443
     volumes:
       - ${USERPROFILE}/${CERT_PATH}/${CERT_NAME}:/https/${CERT_NAME}:ro
     depends_on:
