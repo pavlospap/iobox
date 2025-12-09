@@ -18,10 +18,10 @@ public record Message
     public string MessageId { get; init; } = null!;
 
     /// <summary>
-    /// The serialized message. This is the actual payload that will be processed 
-    /// by the message processor.
+    /// The actual serialized message payload that will be processed by the 
+    /// message processor.
     /// </summary>
-    public string Content { get; init; } = null!;
+    public string Payload { get; init; } = null!;
 
     /// <summary>
     /// Optional metadata about the message context (e.g., queue, topic, producer).

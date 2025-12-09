@@ -2,7 +2,7 @@
 
 namespace IOBox.TaskExecution.Options;
 
-abstract class TaskExecutionOptionsValidator<TOptions> : IValidateOptions<TOptions>
+internal abstract class TaskExecutionOptionsValidator<TOptions> : IValidateOptions<TOptions>
     where TOptions : class, ITaskExecutionOptions
 {
     public virtual ValidateOptionsResult Validate(string? name, TOptions options)
@@ -15,10 +15,10 @@ abstract class TaskExecutionOptionsValidator<TOptions> : IValidateOptions<TOptio
                 $"{name} - {type}.{nameof(options.Delay)} must be greater than 0.");
         }
 
-        if (options.Timeout <= 0)
+        if (options.Timeout < 0)
         {
             return ValidateOptionsResult.Fail(
-                $"{name} - {type}.{nameof(options.Timeout)} must be null or greater than 0.");
+                $"{name} - {type}.{nameof(options.Timeout)} must be greater than or equal to 0.");
         }
 
         if (options.BatchSize <= 0)

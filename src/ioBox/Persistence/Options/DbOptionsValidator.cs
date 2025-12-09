@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Persistence.Options;
 
-class DbOptionsValidator(IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor) :
+internal class DbOptionsValidator(IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor) :
     IValidateOptions<DbOptions>
 {
     public ValidateOptionsResult Validate(string? name, DbOptions options)

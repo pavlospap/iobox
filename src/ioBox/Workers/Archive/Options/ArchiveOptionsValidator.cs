@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Archive.Options;
 
-class ArchiveOptionsValidator : TaskExecutionOptionsValidator<ArchiveOptions>
+internal class ArchiveOptionsValidator : TaskExecutionOptionsValidator<ArchiveOptions>
 {
     public override ValidateOptionsResult Validate(string? name, ArchiveOptions options)
     {
@@ -15,18 +15,18 @@ class ArchiveOptionsValidator : TaskExecutionOptionsValidator<ArchiveOptions>
             return result;
         }
 
-        if (options.ProcessedMessageTtl <= 0)
+        if (options.ProcessedMessageTtl < 0)
         {
             return ValidateOptionsResult.Fail(
                 $"{name} - {nameof(ArchiveOptions)}." +
-                $"{nameof(options.ProcessedMessageTtl)} must be null or greater than 0.");
+                $"{nameof(options.ProcessedMessageTtl)} must be greater than or equal to 0.");
         }
 
-        if (options.ExpiredMessageTtl <= 0)
+        if (options.ExpiredMessageTtl < 0)
         {
             return ValidateOptionsResult.Fail(
                 $"{name} - {nameof(ArchiveOptions)}." +
-                $"{nameof(options.ExpiredMessageTtl)} must be null or greater than 0.");
+                $"{nameof(options.ExpiredMessageTtl)} must be greater than or equal to 0.");
         }
 
         return ValidateOptionsResult.Success;

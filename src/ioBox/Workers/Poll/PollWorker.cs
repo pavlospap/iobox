@@ -7,10 +7,10 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Poll;
 
-class PollWorker(
+internal class PollWorker(
     string ioName,
-    IDbStore dbStore,
-    IOptionsMonitor<PollOptions> pollOptionsMonitor,
+    IDbStoreInternal dbStoreInternal,
+    IOptionsMonitor<PollOptions> optionsMonitor,
     IMessageQueueFactory messageQueueFactory,
     ITaskExecutionWrapper taskExecutionWrapper) : IPollWorker
 {
@@ -18,16 +18,16 @@ class PollWorker(
     {
         async Task pollAsync(CancellationToken cancellationToken)
         {
-            var messages = await dbStore.GetMessagesToProcessAsync(
+            var messages = await dbStoreInternal.GetMessagesToProcessAsync(
                 ioName, cancellationToken);
 
             messageQueueFactory.GetOrCreate(ioName).EnqueueBatch(messages);
         }
 
         return taskExecutionWrapper.WrapTaskAsync(
-            pollAsync,
-            pollOptionsMonitor,
             ioName,
+            pollAsync,
+            optionsMonitor,
             stoppingToken);
     }
 }

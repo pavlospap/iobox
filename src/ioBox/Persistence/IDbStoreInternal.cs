@@ -1,0 +1,80 @@
+﻿namespace IOBox.Persistence;
+
+/// <summary>
+/// Represents a contract for managing messages in a database. All the methods
+/// are intended to be invoked only by the library infrastructure — not by 
+/// library consumers.
+/// </summary>
+public interface IDbStoreInternal
+{
+    /// <summary>
+    /// Retrieves messages that are ready to be processed. This method is intended 
+    /// to be invoked only by the library infrastructure — not by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A collection of messages ready for processing.</returns>
+    Task<IEnumerable<Message>> GetMessagesToProcessAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves messages that are eligible to be retried after a failure. This 
+    /// method is intended to be invoked only by the library infrastructure — not 
+    /// by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A collection of messages eligible for retry.</returns>
+    Task<IEnumerable<Message>> GetMessagesToRetryAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Unlocks messages that were previously locked for processing but were not 
+    /// completed.This method is intended to be invoked only by the library 
+    /// infrastructure — not by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task UnlockMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Marks new and failed messages as expired based on the TTLs specified on 
+    /// configuration. This method is intended to be invoked only by the library 
+    /// infrastructure — not by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task MarkMessagesAsExpiredAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Archives processed and expired messages based on the TTLs specified on 
+    /// configuration. This method is intended to be invoked only by the library 
+    /// infrastructure — not by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task ArchiveMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Permanently deletes processed and expired messages based on the TTLs specified 
+    /// on configuration. This method is intended to be invoked only by the library 
+    /// infrastructure — not by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task DeleteMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+}

@@ -4,11 +4,11 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.TaskExecution;
 
-interface ITaskExecutionWrapper
+internal interface ITaskExecutionWrapper
 {
     Task WrapTaskAsync<TOptions>(
+        string ioName,
         Func<CancellationToken, Task> task,
         IOptionsMonitor<TOptions> optionsMonitor,
-        string ioName,
         CancellationToken stoppingToken) where TOptions : ITaskExecutionOptions;
 }

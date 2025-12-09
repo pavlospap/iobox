@@ -6,21 +6,19 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Expire;
 
-class ExpireWorker(
+internal class ExpireWorker(
     string ioName,
-    IDbStore dbStore,
-    IOptionsMonitor<ExpireOptions> expireOptionsMonitor,
+    IDbStoreInternal dbStoreInternal,
+    IOptionsMonitor<ExpireOptions> optionsMonitor,
     ITaskExecutionWrapper taskExecutionWrapper) : IExpireWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Task expireAsync(CancellationToken cancellationToken) =>
-            dbStore.MarkMessagesAsExpiredAsync(ioName, cancellationToken);
-
         return taskExecutionWrapper.WrapTaskAsync(
-            expireAsync,
-            expireOptionsMonitor,
             ioName,
+            cancellationToken =>
+                dbStoreInternal.MarkMessagesAsExpiredAsync(ioName, cancellationToken),
+            optionsMonitor,
             stoppingToken);
     }
 }

@@ -1,4 +1,4 @@
-﻿using IOBox.Persistence.Options;
+﻿using IOBox.Persistence;
 using IOBox.Queues;
 using IOBox.TaskExecution;
 using IOBox.Workers.Archive;
@@ -6,7 +6,7 @@ using IOBox.Workers.Delete;
 using IOBox.Workers.Expire;
 using IOBox.Workers.Poll;
 using IOBox.Workers.Process;
-using IOBox.Workers.RetryPoll;
+using IOBox.Workers.Retry;
 using IOBox.Workers.Unlock;
 
 using Microsoft.Extensions.Configuration;
@@ -43,25 +43,25 @@ public static class Services
 
         ValidateNames(configuration);
 
-        var inboxOutboxSections = configuration.GetAllInboxOutboxSections();
+        var sections = configuration.GetAllInboxesAndOutboxes();
 
-        foreach (var section in inboxOutboxSections)
+        foreach (var section in sections)
         {
-            var name = section.GetValue<string>("Name")!;
+            var ioName = section.GetValue<string>("Name")!;
 
             var workersSection = section.GetSection(
-                ConfigurationExtensions.WorkersSection);
+                Configuration.WorkersSection);
 
             services
-                .AddPollWorker(workersSection, name)
-                .AddRetryPollWorker(workersSection, name)
-                .AddProcessWorker(workersSection, name)
-                .AddUnlockWorker(workersSection, name)
-                .AddExpireWorker(workersSection, name)
-                .AddArchiveWorker(workersSection, name)
-                .AddDeleteWorker(workersSection, name)
-                .AddKeyedSingleton<IMessageQueue, InMemoryMessageQueue>(name)
-                .AddDbOptions(section, name);
+                .AddPollWorker(workersSection, ioName)
+                .AddRetryWorker(workersSection, ioName)
+                .AddProcessWorker(workersSection, ioName)
+                .AddUnlockWorker(workersSection, ioName)
+                .AddExpireWorker(workersSection, ioName)
+                .AddArchiveWorker(workersSection, ioName)
+                .AddDeleteWorker(workersSection, ioName)
+                .AddKeyedSingleton<IMessageQueue, InMemoryMessageQueue>(ioName)
+                .AddDbOptions(section, ioName);
         }
 
         return services
@@ -70,17 +70,17 @@ public static class Services
             .AddSingleton<ITaskExecutionWrapper, TaskExecutionWrapper>();
     }
 
-    static void ValidateNames(IConfiguration configuration)
+    private static void ValidateNames(IConfiguration configuration)
     {
-        var names = configuration.GetAllInboxOutboxSections()
+        var names = configuration.GetAllInboxesAndOutboxes()
             .Select(s => s.GetValue<string>("Name"));
 
         if (!names.Any())
         {
             throw new ArgumentException(
                 "Configuration must define at least one Inbox or Outbox under " +
-                $"'{ConfigurationExtensions.InboxesSection}' or " +
-                $"'{ConfigurationExtensions.OutboxesSection}'.");
+                $"'{Configuration.InboxesSection}' or " +
+                $"'{Configuration.OutboxesSection}'.");
         }
 
         if (names.Any(string.IsNullOrWhiteSpace))

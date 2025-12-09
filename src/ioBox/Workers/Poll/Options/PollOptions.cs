@@ -26,11 +26,11 @@ public class PollOptions : ITaskExecutionOptions
 
     /// <summary>
     /// The timeout, in milliseconds, for a single execution cycle.
-    /// Must be <c>null</c> or greater than <c>0</c>.
-    /// If set to <c>null</c>, no timeout will be applied.
+    /// Must be greater than or equal to <c>0</c>.
+    /// If set to <c>0</c>, no timeout will be applied.
     /// Default value is <c>10,000 ms (10 sec)</c>.
     /// </summary>
-    public int? Timeout { get; set; } = 10_000;
+    public int Timeout { get; set; } = 10_000;
 
     /// <summary>
     /// The batch size, i.e., the number of messages to process in a single 

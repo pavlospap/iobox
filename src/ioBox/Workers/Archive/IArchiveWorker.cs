@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Archive;
 
-interface IArchiveWorker : IWorker;
+internal interface IArchiveWorker : IWorker;

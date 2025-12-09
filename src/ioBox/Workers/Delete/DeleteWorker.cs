@@ -6,21 +6,19 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Delete;
 
-class DeleteWorker(
+internal class DeleteWorker(
     string ioName,
-    IDbStore dbStore,
-    IOptionsMonitor<DeleteOptions> deleteOptionsMonitor,
+    IDbStoreInternal dbStoreInternal,
+    IOptionsMonitor<DeleteOptions> optionsMonitor,
     ITaskExecutionWrapper taskExecutionWrapper) : IDeleteWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Task deleteAsync(CancellationToken cancellationToken) =>
-            dbStore.DeleteMessagesAsync(ioName, cancellationToken);
-
         return taskExecutionWrapper.WrapTaskAsync(
-            deleteAsync,
-            deleteOptionsMonitor,
             ioName,
+            cancellationToken =>
+                dbStoreInternal.DeleteMessagesAsync(ioName, cancellationToken),
+            optionsMonitor,
             stoppingToken);
     }
 }

@@ -2,4 +2,4 @@
 
 namespace IOBox.Workers.Process.Options;
 
-class ProcessOptionsValidator : TaskExecutionOptionsValidator<ProcessOptions>;
+internal class ProcessOptionsValidator : TaskExecutionOptionsValidator<ProcessOptions>;

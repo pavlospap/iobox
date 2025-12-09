@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Unlock;
 
-interface IUnlockWorker : IWorker;
+internal interface IUnlockWorker : IWorker;

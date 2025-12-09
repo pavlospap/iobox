@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Delete;
 
-interface IDeleteWorker : IWorker;
+internal interface IDeleteWorker : IWorker;

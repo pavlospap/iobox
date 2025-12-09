@@ -4,7 +4,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace IOBox;
 
-class MessageBackgroundService(IEnumerable<IWorker> workers) : BackgroundService
+internal class MessageBackgroundService(IEnumerable<IWorker> workers) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {

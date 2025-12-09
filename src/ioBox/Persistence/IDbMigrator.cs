@@ -10,8 +10,7 @@ public interface IDbMigrator
     /// </summary>
     /// <param name="ioName">
     /// The inbox/outbox name used to resolve a corresponding 
-    /// <see cref="Options.DbOptions"/> 
-    /// configuration.
+    /// <see cref="Options.DbOptions"/> configuration.
     /// </param>
     void MigrateDb(string ioName);
 }

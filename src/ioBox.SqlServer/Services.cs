@@ -30,6 +30,7 @@ public static class Services
         return services
             .AddScoped<IDbMigrator, SqlServerDbMigrator>()
             .AddSingleton<IDbContext, SqlServerDbContext>()
-            .AddSingleton<IDbStore, SqlServerDbStore>();
+            .AddSingleton<IDbStore, SqlServerDbStore>()
+            .AddSingleton<IDbStoreInternal, SqlServerDbStoreInternal>();
     }
 }

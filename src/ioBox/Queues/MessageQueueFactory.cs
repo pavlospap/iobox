@@ -2,8 +2,9 @@
 
 namespace IOBox.Queues;
 
-class MessageQueueFactory(IServiceProvider serviceProvider) : IMessageQueueFactory
+internal class MessageQueueFactory(IServiceProvider serviceProvider) :
+    IMessageQueueFactory
 {
-    public IMessageQueue GetOrCreate(string key) =>
-        serviceProvider.GetKeyedService<IMessageQueue>(key)!;
+    public IMessageQueue GetOrCreate(string ioName) =>
+        serviceProvider.GetKeyedService<IMessageQueue>(ioName)!;
 }

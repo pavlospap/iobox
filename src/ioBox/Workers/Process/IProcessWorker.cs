@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Process;
 
-interface IProcessWorker : IWorker;
+internal interface IProcessWorker : IWorker;

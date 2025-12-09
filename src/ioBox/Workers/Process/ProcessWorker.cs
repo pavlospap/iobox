@@ -6,9 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Process;
 
-class ProcessWorker(
+internal class ProcessWorker(
     string ioName,
-    IOptionsMonitor<ProcessOptions> processOptionsMonitor,
+    IOptionsMonitor<ProcessOptions> optionsMonitor,
     IMessageQueueFactory messageQueueFactory,
     IMessageProcessor messageProcessor,
     ITaskExecutionWrapper taskExecutionWrapper) : IProcessWorker
@@ -17,7 +17,7 @@ class ProcessWorker(
     {
         async Task processAsync(CancellationToken cancellationToken)
         {
-            var options = processOptionsMonitor.Get(ioName);
+            var options = optionsMonitor.Get(ioName);
 
             var messages = messageQueueFactory.GetOrCreate(ioName)
                 .DequeueBatch(options.BatchSize);
@@ -30,9 +30,9 @@ class ProcessWorker(
         }
 
         return taskExecutionWrapper.WrapTaskAsync(
-            processAsync,
-            processOptionsMonitor,
             ioName,
+            processAsync,
+            optionsMonitor,
             stoppingToken);
     }
 }

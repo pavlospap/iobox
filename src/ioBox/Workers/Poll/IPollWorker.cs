@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Poll;
 
-interface IPollWorker : IWorker;
+internal interface IPollWorker : IWorker;

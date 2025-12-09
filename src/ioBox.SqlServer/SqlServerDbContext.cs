@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.SqlServer;
 
-class SqlServerDbContext(
+internal class SqlServerDbContext(
     IOptionsMonitor<DbOptions> dbOptionsMonitor) : IDbContext
 {
     public IDbConnection CreateConnection(string ioName) =>

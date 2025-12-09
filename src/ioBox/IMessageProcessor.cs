@@ -16,12 +16,12 @@ public interface IMessageProcessor
     /// processing pipeline. Implementations should provide the logic for handling 
     /// each message. This method should not be called directly by library consumers.
     /// </summary>
-    /// <param name="name">The name of the inbox/outbox.</param>
+    /// <param name="ioName">The name of the inbox/outbox.</param>
     /// <param name="messages">The list of messages to process.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task ProcessMessagesAsync(
-        string name,
+        string ioName,
         List<Message> messages,
         CancellationToken cancellationToken = default);
 }

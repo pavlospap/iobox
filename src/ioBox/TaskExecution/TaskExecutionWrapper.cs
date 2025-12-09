@@ -5,24 +5,24 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.TaskExecution;
 
-class TaskExecutionWrapper(ILogger<TaskExecutionWrapper> logger) :
+internal class TaskExecutionWrapper(ILogger<TaskExecutionWrapper> logger) :
     ITaskExecutionWrapper
 {
     public async Task WrapTaskAsync<TOptions>(
+        string ioName,
         Func<CancellationToken, Task> task,
         IOptionsMonitor<TOptions> optionsMonitor,
-        string ioName,
         CancellationToken stoppingToken) where TOptions : ITaskExecutionOptions
     {
         while (!stoppingToken.IsCancellationRequested)
         {
             var options = optionsMonitor.Get(ioName);
 
-            using var cts = options.Timeout.HasValue
+            using var cts = options.Timeout > 0
                 ? CancellationTokenSource.CreateLinkedTokenSource(stoppingToken)
                 : null;
 
-            cts?.CancelAfter(options.Timeout!.Value);
+            cts?.CancelAfter(options.Timeout);
 
             var token = cts?.Token ?? stoppingToken;
 
@@ -37,10 +37,13 @@ class TaskExecutionWrapper(ILogger<TaskExecutionWrapper> logger) :
             }
             catch (OperationCanceledException ex) when (!stoppingToken.IsCancellationRequested)
             {
-                logger.LogError(
-                    ex,
-                    "Task execution was cancelled unexpectedly for {workerName}",
-                    task.Method.DeclaringType!.Name);
+                if (logger.IsEnabled(LogLevel.Error))
+                {
+                    logger.LogError(
+                        ex,
+                        "Task execution was cancelled unexpectedly for {workerName}",
+                        task.Method.DeclaringType!.Name);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -48,10 +51,13 @@ class TaskExecutionWrapper(ILogger<TaskExecutionWrapper> logger) :
             }
             catch (Exception ex)
             {
-                logger.LogError(
-                    ex,
-                    "An unhandled exception occurred while executing {workerName}",
-                    task.Method.DeclaringType!.Name);
+                if (logger.IsEnabled(LogLevel.Error))
+                {
+                    logger.LogError(
+                        ex,
+                        "An unhandled exception occurred while executing {workerName}",
+                        task.Method.DeclaringType!.Name);
+                }
             }
         }
     }

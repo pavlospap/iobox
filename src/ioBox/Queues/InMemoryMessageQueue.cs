@@ -4,9 +4,9 @@ using IOBox.Persistence;
 
 namespace IOBox.Queues;
 
-class InMemoryMessageQueue : IMessageQueue
+internal class InMemoryMessageQueue : IMessageQueue
 {
-    readonly ConcurrentQueue<Message> _queue = new();
+    private readonly ConcurrentQueue<Message> _queue = new();
 
     public void EnqueueBatch(IEnumerable<Message> batch)
     {

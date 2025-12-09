@@ -2,4 +2,4 @@
 
 namespace IOBox.Workers.Poll.Options;
 
-class PollOptionsValidator : TaskExecutionOptionsValidator<PollOptions>;
+internal class PollOptionsValidator : TaskExecutionOptionsValidator<PollOptions>;

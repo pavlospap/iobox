@@ -2,7 +2,7 @@
 
 namespace IOBox.Queues;
 
-interface IMessageQueue
+internal interface IMessageQueue
 {
     void EnqueueBatch(IEnumerable<Message> batch);
 

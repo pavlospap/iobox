@@ -22,11 +22,11 @@ public interface ITaskExecutionOptions
 
     /// <summary>
     /// The timeout, in milliseconds, for a single execution cycle.
-    /// Must be <c>null</c> or greater than <c>0</c>.
-    /// If set to <c>null</c>, no timeout will be applied.
+    /// Must be greater than or equal to <c>0</c>.
+    /// If set to <c>0</c>, no timeout will be applied.
     /// Default value depends on the type of operation being performed.
     /// </summary>
-    int? Timeout { get; set; }
+    int Timeout { get; set; }
 
     /// <summary>
     /// The batch size, i.e., the number of messages to process in a single 

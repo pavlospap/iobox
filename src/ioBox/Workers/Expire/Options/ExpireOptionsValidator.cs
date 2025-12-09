@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Expire.Options;
 
-class ExpireOptionsValidator : TaskExecutionOptionsValidator<ExpireOptions>
+internal class ExpireOptionsValidator : TaskExecutionOptionsValidator<ExpireOptions>
 {
     public override ValidateOptionsResult Validate(string? name, ExpireOptions options)
     {
@@ -15,18 +15,18 @@ class ExpireOptionsValidator : TaskExecutionOptionsValidator<ExpireOptions>
             return result;
         }
 
-        if (options.NewMessageTtl <= 0)
+        if (options.NewMessageTtl < 0)
         {
             return ValidateOptionsResult.Fail(
                 $"{name} - {nameof(ExpireOptions)}." +
-                $"{nameof(options.NewMessageTtl)} must be null or greater than 0.");
+                $"{nameof(options.NewMessageTtl)} must be greater than or equal to 0.");
         }
 
-        if (options.FailedMessageTtl <= 0)
+        if (options.FailedMessageTtl < 0)
         {
             return ValidateOptionsResult.Fail(
                 $"{name} - {nameof(ExpireOptions)}." +
-                $"{nameof(options.FailedMessageTtl)} must be null or greater than 0.");
+                $"{nameof(options.FailedMessageTtl)} must be greater than or equal to 0.");
         }
 
         return ValidateOptionsResult.Success;

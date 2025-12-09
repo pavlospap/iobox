@@ -17,7 +17,7 @@ public class DbOptions
     /// Connection string used for administrative operations such as 
     /// creating the database when <see cref="CreateDatabaseIfNotExists"/> is <c>true</c>.
     /// For example, this can point to the <c>master</c> database in SQL Server or 
-    /// the <c>postgres</c> database in PostgreSQL.
+    /// the <c>postgres</c> database in Postgres.
     /// This property is required if database creation is enabled.
     /// </summary>
     public string? DefaultConnectionString { get; set; }
@@ -35,7 +35,7 @@ public class DbOptions
     /// If the specified schema does not exist and <see cref="CreateSchemaIfNotExists"/> 
     /// is set to <c>true</c> it will be created automatically.
     /// To use the default schema (e.g., <c>dbo</c> for SQL Server or <c>public</c> 
-    /// for PostgreSQL), explicitly provide its name instead of leaving this value 
+    /// for Postgres), explicitly provide its name instead of leaving this value 
     /// null or empty.
     /// </summary>
     public string SchemaName { get; set; } = null!;
@@ -56,12 +56,14 @@ public class DbOptions
     /// <summary>
     /// Indicates whether the application should attempt to create the specified 
     /// database if it doesn't already exist.
+    /// Default value is <c>false</c>.
     /// </summary>
     public bool CreateDatabaseIfNotExists { get; set; }
 
     /// <summary>
     /// Indicates whether the application should attempt to create the specified 
     /// schema if it doesn't already exist.
+    /// Default value is <c>false</c>.
     /// </summary>
     public bool CreateSchemaIfNotExists { get; set; }
 
@@ -80,13 +82,7 @@ public class DbOptions
     /// This will be <c>null</c> if <see cref="ArchiveTableName"/> is not set or 
     /// is empty.
     /// </summary>
-    public string? ArchiveFullTableName
-    {
-        get
-        {
-            return string.IsNullOrWhiteSpace(ArchiveTableName)
-                ? null
-                : SchemaName + "." + ArchiveTableName;
-        }
-    }
+    public string? ArchiveFullTableName => string.IsNullOrWhiteSpace(ArchiveTableName)
+        ? null
+        : SchemaName + "." + ArchiveTableName;
 }

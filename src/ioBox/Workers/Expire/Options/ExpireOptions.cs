@@ -27,11 +27,11 @@ public class ExpireOptions : ITaskExecutionOptions
 
     /// <summary>
     /// The timeout, in milliseconds, for a single execution cycle.
-    /// Must be <c>null</c> or greater than <c>0</c>.
-    /// If set to <c>null</c>, no timeout will be applied.
+    /// Must be greater than or equal to <c>0</c>.
+    /// If set to <c>0</c>, no timeout will be applied.
     /// Default value is <c>10,000 ms (10 sec)</c>.
     /// </summary>
-    public int? Timeout { get; set; } = 10_000;
+    public int Timeout { get; set; } = 10_000;
 
     /// <summary>
     /// The batch size, i.e., the number of messages to process in a single 
@@ -44,18 +44,18 @@ public class ExpireOptions : ITaskExecutionOptions
     /// <summary>
     /// The time-to-live (TTL), in milliseconds, for new messages. After this 
     /// period, new messages will be marked as expired.
-    /// Must be <c>null</c> or greater than <c>0</c>.
-    /// If set to <c>null</c>, no automatic expiration of new messages will occur.
+    /// Must be greater than or equal to <c>0</c>.
+    /// If set to <c>0</c>, no automatic expiration of new messages will occur.
     /// Default value is <c>3,600,000 ms (1 hour)</c>.
     /// </summary>
-    public int? NewMessageTtl { get; set; } = 3_600_000;
+    public int NewMessageTtl { get; set; } = 3_600_000;
 
     /// <summary>
     /// The time-to-live (TTL), in milliseconds, for failed messages. After 
     /// this period, failed messages will be marked as expired.
-    /// Must be <c>null</c> or greater than <c>0</c>.
-    /// If set to <c>null</c>, no automatic expiration of failed messages will occur.
+    /// Must be greater than or equal to <c>0</c>.
+    /// If set to <c>0</c>, no automatic expiration of failed messages will occur.
     /// Default value is <c>1,800,000 ms (30 min)</c>.
     /// </summary>
-    public int? FailedMessageTtl { get; set; } = 1_800_000;
+    public int FailedMessageTtl { get; set; } = 1_800_000;
 }

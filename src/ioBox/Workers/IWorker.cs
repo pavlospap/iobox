@@ -1,6 +1,6 @@
 ﻿namespace IOBox.Workers;
 
-interface IWorker
+internal interface IWorker
 {
     Task ExecuteAsync(CancellationToken stoppingToken);
 }

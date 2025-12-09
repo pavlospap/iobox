@@ -1,3 +1,3 @@
 ﻿namespace IOBox.Workers.Expire;
 
-interface IExpireWorker : IWorker;
+internal interface IExpireWorker : IWorker;

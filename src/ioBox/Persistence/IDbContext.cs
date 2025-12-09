@@ -16,8 +16,7 @@ public interface IDbContext
     /// </summary>
     /// <param name="ioName">
     /// The inbox/outbox name used to resolve a corresponding 
-    /// <see cref="Options.DbOptions"/> 
-    /// configuration.
+    /// <see cref="Options.DbOptions"/> configuration.
     /// </param>
     /// <returns>A new <see cref="IDbConnection"/> instance.</returns>
     IDbConnection CreateConnection(string ioName);
@@ -32,8 +31,7 @@ public interface IDbContext
     /// </summary>
     /// <param name="ioName">
     /// The inbox/outbox name used to resolve a corresponding 
-    /// <see cref="Options.DbOptions"/> 
-    /// configuration.
+    /// <see cref="Options.DbOptions"/> configuration.
     /// </param>
     /// <returns>A new <see cref="IDbConnection"/> instance.</returns>
     IDbConnection CreateDefaultConnection(string ioName);

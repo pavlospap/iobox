@@ -6,21 +6,19 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Archive;
 
-class ArchiveWorker(
+internal class ArchiveWorker(
     string ioName,
-    IDbStore dbStore,
-    IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor,
+    IDbStoreInternal dbStoreInternal,
+    IOptionsMonitor<ArchiveOptions> optionsMonitor,
     ITaskExecutionWrapper taskExecutionWrapper) : IArchiveWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Task archiveAsync(CancellationToken cancellationToken) =>
-            dbStore.ArchiveMessagesAsync(ioName, cancellationToken);
-
         return taskExecutionWrapper.WrapTaskAsync(
-            archiveAsync,
-            archiveOptionsMonitor,
             ioName,
+            cancellationToken =>
+                dbStoreInternal.ArchiveMessagesAsync(ioName, cancellationToken),
+            optionsMonitor,
             stoppingToken);
     }
 }

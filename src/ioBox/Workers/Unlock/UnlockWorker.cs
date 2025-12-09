@@ -6,21 +6,19 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Unlock;
 
-class UnlockWorker(
+internal class UnlockWorker(
     string ioName,
-    IDbStore dbStore,
-    IOptionsMonitor<UnlockOptions> unlockOptionsMonitor,
+    IDbStoreInternal dbStoreInternal,
+    IOptionsMonitor<UnlockOptions> optionsMonitor,
     ITaskExecutionWrapper taskExecutionWrapper) : IUnlockWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Task unlockAsync(CancellationToken cancellationToken) =>
-            dbStore.UnlockMessagesAsync(ioName, cancellationToken);
-
         return taskExecutionWrapper.WrapTaskAsync(
-            unlockAsync,
-            unlockOptionsMonitor,
             ioName,
+            cancellationToken =>
+                dbStoreInternal.UnlockMessagesAsync(ioName, cancellationToken),
+            optionsMonitor,
             stoppingToken);
     }
 }

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.Unlock.Options;
 
-class UnlockOptionsValidator : TaskExecutionOptionsValidator<UnlockOptions>
+internal class UnlockOptionsValidator : TaskExecutionOptionsValidator<UnlockOptions>
 {
     public override ValidateOptionsResult Validate(string? name, UnlockOptions options)
     {

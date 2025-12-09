@@ -1,6 +1,6 @@
 ﻿namespace IOBox.Queues;
 
-interface IMessageQueueFactory
+internal interface IMessageQueueFactory
 {
     IMessageQueue GetOrCreate(string key);
 }
