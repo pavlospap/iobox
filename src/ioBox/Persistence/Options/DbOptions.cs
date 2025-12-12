@@ -1,4 +1,7 @@
-﻿namespace IOBox.Persistence.Options;
+﻿using IOBox.Workers.ArchiveExpired.Options;
+using IOBox.Workers.ArchiveProcessed.Options;
+
+namespace IOBox.Persistence.Options;
 
 /// <summary>
 /// Represents configuration options for database access and initialization.
@@ -48,7 +51,8 @@ public class DbOptions
 
     /// <summary>
     /// If specified, the table will be created and used to store archived messages 
-    /// when <see cref="Workers.Archive.Options.ArchiveOptions.Enabled"/> is <c>true</c>.
+    /// when <see cref="ArchiveProcessedOptions.Enabled"/> or
+    /// <see cref="ArchiveExpiredOptions.Enabled"/> is <c>true</c>.
     /// This property is required when archiving is enabled.
     /// </summary>
     public string? ArchiveTableName { get; set; } = null!;

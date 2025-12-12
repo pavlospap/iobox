@@ -1,10 +1,13 @@
-﻿using IOBox.Workers.Archive.Options;
+﻿using IOBox.Workers.ArchiveExpired.Options;
+using IOBox.Workers.ArchiveProcessed.Options;
 
 using Microsoft.Extensions.Options;
 
 namespace IOBox.Persistence.Options;
 
-internal class DbOptionsValidator(IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor) :
+internal class DbOptionsValidator(
+    IOptionsMonitor<ArchiveProcessedOptions> archiveProcessedOptionsMonitor,
+    IOptionsMonitor<ArchiveExpiredOptions> archiveExpiredOptionsMonitor) :
     IValidateOptions<DbOptions>
 {
     public ValidateOptionsResult Validate(string? name, DbOptions options)
@@ -46,9 +49,8 @@ internal class DbOptionsValidator(IOptionsMonitor<ArchiveOptions> archiveOptions
                 $"{nameof(DbOptions.TableName)} must have a non-empty value.");
         }
 
-        var archiveOptions = archiveOptionsMonitor.Get(name!);
-
-        if (archiveOptions.Enabled &&
+        if ((archiveProcessedOptionsMonitor.Get(name!).Enabled ||
+             archiveExpiredOptionsMonitor.Get(name!).Enabled) &&
             string.IsNullOrWhiteSpace(options.ArchiveTableName))
         {
             return ValidateOptionsResult.Fail(

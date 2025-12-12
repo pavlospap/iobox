@@ -4,7 +4,8 @@ using Dapper;
 
 using IOBox.Persistence;
 using IOBox.Persistence.Options;
-using IOBox.Workers.Archive.Options;
+using IOBox.Workers.ArchiveExpired.Options;
+using IOBox.Workers.ArchiveProcessed.Options;
 using IOBox.Workers.Delete.Options;
 using IOBox.Workers.ExpireFailed.Options;
 using IOBox.Workers.ExpireNew.Options;
@@ -24,7 +25,8 @@ internal class SqlServerDbStoreInternal(
     IOptionsMonitor<UnlockOptions> unlockOptionsMonitor,
     IOptionsMonitor<ExpireNewOptions> expireNewOptionsMonitor,
     IOptionsMonitor<ExpireFailedOptions> expireFailedOptionsMonitor,
-    IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor,
+    IOptionsMonitor<ArchiveProcessedOptions> archiveProcessedOptionsMonitor,
+    IOptionsMonitor<ArchiveExpiredOptions> archiveExpiredOptionsMonitor,
     IOptionsMonitor<DeleteOptions> deleteOptionsMonitor) : IDbStoreInternal
 {
     public async Task<IEnumerable<Message>> GetMessagesToProcessAsync(
@@ -248,7 +250,7 @@ internal class SqlServerDbStoreInternal(
         transaction.Commit();
     }
 
-    public async Task ArchiveMessagesAsync(
+    public async Task ArchiveProcessedMessagesAsync(
         string ioName,
         CancellationToken cancellationToken = default)
     {
@@ -264,16 +266,9 @@ internal class SqlServerDbStoreInternal(
             INSERT INTO @MessagesToArchive (Id)
             SELECT TOP (@BatchSize) Id 
             FROM {table} WITH (ROWLOCK, UPDLOCK, READPAST) 
-            WHERE 
-                (Status = {MessageStatus.Processed} AND 
-                 ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
-                (Status = {MessageStatus.Expired} AND 
-                 ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
-            ORDER BY 
-                CASE 
-                    WHEN Status = {MessageStatus.Processed} THEN ProcessedAt
-                    WHEN Status = {MessageStatus.Expired} THEN ExpiredAt
-                END;
+            WHERE Status = {MessageStatus.Processed} AND 
+                  ProcessedAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+            ORDER BY ProcessedAt;
             
             INSERT INTO {dbOptions.ArchiveFullTableName} (
                 MessageId,
@@ -312,15 +307,88 @@ internal class SqlServerDbStoreInternal(
         using var transaction = connection.BeginTransaction(
             IsolationLevel.ReadCommitted);
 
-        var archiveOptions = archiveOptionsMonitor.Get(ioName);
+        var archiveProcessedOptions = archiveProcessedOptionsMonitor.Get(ioName);
 
         var command = new CommandDefinition(
             sql,
             new
             {
-                archiveOptions.BatchSize,
-                archiveOptions.ProcessedMessageTtl,
-                archiveOptions.ExpiredMessageTtl
+                archiveProcessedOptions.BatchSize,
+                archiveProcessedOptions.Ttl
+            },
+            transaction,
+            cancellationToken: cancellationToken);
+
+        await connection.ExecuteAsync(command);
+
+        transaction.Commit();
+    }
+
+    public async Task ArchiveExpiredMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ioName, nameof(ioName));
+
+        var dbOptions = dbOptionsMonitor.Get(ioName);
+
+        var table = dbOptions.FullTableName;
+
+        var sql = $@"
+            DECLARE @MessagesToArchive TABLE (Id int);
+
+            INSERT INTO @MessagesToArchive (Id)
+            SELECT TOP (@BatchSize) Id 
+            FROM {table} WITH (ROWLOCK, UPDLOCK, READPAST) 
+            WHERE Status = {MessageStatus.Expired} AND 
+                  ExpiredAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+            ORDER BY ExpiredAt;
+            
+            INSERT INTO {dbOptions.ArchiveFullTableName} (
+                MessageId,
+                Payload,
+                ContextInfo,
+                Status,
+                Retries,
+                Error,
+                ReceivedAt,
+                LockedAt,
+                ProcessedAt,
+                FailedAt,
+                ExpiredAt)
+            SELECT
+                MessageId,
+                Payload,
+                ContextInfo,
+                Status,
+                Retries,
+                Error,
+                ReceivedAt,
+                LockedAt,
+                ProcessedAt,
+                FailedAt,
+                ExpiredAt
+            FROM {table}
+            WHERE Id IN (SELECT Id FROM @MessagesToArchive);
+
+            DELETE FROM {table}
+            WHERE Id IN (SELECT Id FROM @MessagesToArchive);";
+
+        using var connection = dbContext.CreateConnection(ioName);
+
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction(
+            IsolationLevel.ReadCommitted);
+
+        var archiveExpiredOptions = archiveExpiredOptionsMonitor.Get(ioName);
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                archiveExpiredOptions.BatchSize,
+                archiveExpiredOptions.Ttl
             },
             transaction,
             cancellationToken: cancellationToken);

@@ -2,13 +2,13 @@
 
 using Microsoft.Extensions.Options;
 
-namespace IOBox.Workers.ExpireFailed.Options;
+namespace IOBox.Workers.ArchiveProcessed.Options;
 
-internal class ExpireFailedOptionsValidator :
-    TaskExecutionOptionsValidator<ExpireFailedOptions>
+internal class ArchiveProcessedOptionsValidator :
+    TaskExecutionOptionsValidator<ArchiveProcessedOptions>
 {
     public override ValidateOptionsResult Validate(
-        string? name, ExpireFailedOptions options)
+        string? name, ArchiveProcessedOptions options)
     {
         var result = base.Validate(name, options);
 
@@ -20,7 +20,7 @@ internal class ExpireFailedOptionsValidator :
         if (options.Ttl < 0)
         {
             return ValidateOptionsResult.Fail(
-                $"{name} - {nameof(ExpireFailedOptions)}." +
+                $"{name} - {nameof(ArchiveProcessedOptions)}." +
                 $"{nameof(options.Ttl)} must be greater than or equal to 0.");
         }
 

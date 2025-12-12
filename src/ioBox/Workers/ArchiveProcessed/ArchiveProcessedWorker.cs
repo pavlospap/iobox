@@ -1,23 +1,23 @@
 ﻿using IOBox.Persistence;
 using IOBox.TaskExecution;
-using IOBox.Workers.Archive.Options;
+using IOBox.Workers.ArchiveProcessed.Options;
 
 using Microsoft.Extensions.Options;
 
-namespace IOBox.Workers.Archive;
+namespace IOBox.Workers.ArchiveProcessed;
 
-internal class ArchiveWorker(
+internal class ArchiveProcessedWorker(
     string ioName,
     IDbStoreInternal dbStoreInternal,
-    IOptionsMonitor<ArchiveOptions> optionsMonitor,
-    ITaskExecutionWrapper taskExecutionWrapper) : IArchiveWorker
+    IOptionsMonitor<ArchiveProcessedOptions> optionsMonitor,
+    ITaskExecutionWrapper taskExecutionWrapper) : IArchiveProcessedWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
         return taskExecutionWrapper.WrapTaskAsync(
             ioName,
             cancellationToken =>
-                dbStoreInternal.ArchiveMessagesAsync(ioName, cancellationToken),
+                dbStoreInternal.ArchiveProcessedMessagesAsync(ioName, cancellationToken),
             optionsMonitor,
             stoppingToken);
     }

@@ -43,7 +43,7 @@ public interface IDbStoreInternal
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Marks new messages as expired based on the TTLs specified on configuration. 
+    /// Marks new messages as expired based on the TTL specified on configuration. 
     /// This method is intended to be invoked only by the library infrastructure — not 
     /// by library consumers.
     /// </summary>
@@ -55,7 +55,7 @@ public interface IDbStoreInternal
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Marks failed messages as expired based on the TTLs specified on configuration. 
+    /// Marks failed messages as expired based on the TTL specified on configuration. 
     /// This method is intended to be invoked only by the library infrastructure — not 
     /// by library consumers.
     /// </summary>
@@ -67,14 +67,26 @@ public interface IDbStoreInternal
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Archives processed and expired messages based on the TTLs specified on 
-    /// configuration. This method is intended to be invoked only by the library 
-    /// infrastructure — not by library consumers.
+    /// Archives processed messages based on the TTL specified on configuration. 
+    /// This method is intended to be invoked only by the library infrastructure — not 
+    /// by library consumers.
     /// </summary>
     /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task ArchiveMessagesAsync(
+    Task ArchiveProcessedMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Archives expired messages based on the TTL specified on configuration. 
+    /// This method is intended to be invoked only by the library infrastructure — not 
+    /// by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task ArchiveExpiredMessagesAsync(
         string ioName,
         CancellationToken cancellationToken = default);
 

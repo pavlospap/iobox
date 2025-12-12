@@ -1,7 +1,8 @@
 ﻿using IOBox.Persistence;
 using IOBox.Queues;
 using IOBox.TaskExecution;
-using IOBox.Workers.Archive;
+using IOBox.Workers.ArchiveExpired;
+using IOBox.Workers.ArchiveProcessed;
 using IOBox.Workers.Delete;
 using IOBox.Workers.ExpireFailed;
 using IOBox.Workers.ExpireNew;
@@ -60,7 +61,8 @@ public static class Services
                 .AddUnlockWorker(workersSection, ioName)
                 .AddExpireNewWorker(workersSection, ioName)
                 .AddExpireFailedWorker(workersSection, ioName)
-                .AddArchiveWorker(workersSection, ioName)
+                .AddArchiveProcessedWorker(workersSection, ioName)
+                .AddArchiveExpiredWorker(workersSection, ioName)
                 .AddDeleteWorker(workersSection, ioName)
                 .AddKeyedSingleton<IMessageQueue, InMemoryMessageQueue>(ioName)
                 .AddDbOptions(section, ioName);

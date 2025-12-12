@@ -4,9 +4,11 @@ using Microsoft.Extensions.Options;
 
 namespace IOBox.Workers.ExpireNew.Options;
 
-internal class ExpireNewOptionsValidator : TaskExecutionOptionsValidator<ExpireNewOptions>
+internal class ExpireNewOptionsValidator :
+    TaskExecutionOptionsValidator<ExpireNewOptions>
 {
-    public override ValidateOptionsResult Validate(string? name, ExpireNewOptions options)
+    public override ValidateOptionsResult Validate(
+        string? name, ExpireNewOptions options)
     {
         var result = base.Validate(name, options);
 
