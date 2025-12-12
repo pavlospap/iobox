@@ -1,14 +1,13 @@
 ﻿using IOBox.TaskExecution.Options;
 
-namespace IOBox.Workers.Expire.Options;
+namespace IOBox.Workers.ExpireNew.Options;
 
 /// <summary>
-/// Represents configuration options related to the expiration of new or failed 
-/// messages.
+/// Represents configuration options related to the expiration of new messages.
 /// </summary>
-public class ExpireOptions : ITaskExecutionOptions
+public class ExpireNewOptions : ITaskExecutionOptions
 {
-    internal const string Section = "Expire";
+    internal const string Section = "ExpireNew";
 
     /// <summary>
     /// Indicates whether this worker is enabled and should perform its task.
@@ -48,14 +47,5 @@ public class ExpireOptions : ITaskExecutionOptions
     /// If set to <c>0</c>, no automatic expiration of new messages will occur.
     /// Default value is <c>3,600,000 ms (1 hour)</c>.
     /// </summary>
-    public int NewMessageTtl { get; set; } = 3_600_000;
-
-    /// <summary>
-    /// The time-to-live (TTL), in milliseconds, for failed messages. After 
-    /// this period, failed messages will be marked as expired.
-    /// Must be greater than or equal to <c>0</c>.
-    /// If set to <c>0</c>, no automatic expiration of failed messages will occur.
-    /// Default value is <c>1,800,000 ms (30 min)</c>.
-    /// </summary>
-    public int FailedMessageTtl { get; set; } = 1_800_000;
+    public int Ttl { get; set; } = 3_600_000;
 }

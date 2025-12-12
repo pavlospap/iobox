@@ -43,14 +43,26 @@ public interface IDbStoreInternal
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Marks new and failed messages as expired based on the TTLs specified on 
-    /// configuration. This method is intended to be invoked only by the library 
-    /// infrastructure — not by library consumers.
+    /// Marks new messages as expired based on the TTLs specified on configuration. 
+    /// This method is intended to be invoked only by the library infrastructure — not 
+    /// by library consumers.
     /// </summary>
     /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task MarkMessagesAsExpiredAsync(
+    Task MarkNewMessagesAsExpiredAsync(
+        string ioName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Marks failed messages as expired based on the TTLs specified on configuration. 
+    /// This method is intended to be invoked only by the library infrastructure — not 
+    /// by library consumers.
+    /// </summary>
+    /// <param name="ioName">The inbox/outbox name to get the related configuration.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    Task MarkFailedMessagesAsExpiredAsync(
         string ioName,
         CancellationToken cancellationToken = default);
 

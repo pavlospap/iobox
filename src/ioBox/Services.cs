@@ -3,7 +3,8 @@ using IOBox.Queues;
 using IOBox.TaskExecution;
 using IOBox.Workers.Archive;
 using IOBox.Workers.Delete;
-using IOBox.Workers.Expire;
+using IOBox.Workers.ExpireFailed;
+using IOBox.Workers.ExpireNew;
 using IOBox.Workers.Poll;
 using IOBox.Workers.Process;
 using IOBox.Workers.Retry;
@@ -57,7 +58,8 @@ public static class Services
                 .AddRetryWorker(workersSection, ioName)
                 .AddProcessWorker(workersSection, ioName)
                 .AddUnlockWorker(workersSection, ioName)
-                .AddExpireWorker(workersSection, ioName)
+                .AddExpireNewWorker(workersSection, ioName)
+                .AddExpireFailedWorker(workersSection, ioName)
                 .AddArchiveWorker(workersSection, ioName)
                 .AddDeleteWorker(workersSection, ioName)
                 .AddKeyedSingleton<IMessageQueue, InMemoryMessageQueue>(ioName)

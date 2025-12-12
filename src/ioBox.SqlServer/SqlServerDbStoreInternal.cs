@@ -6,7 +6,8 @@ using IOBox.Persistence;
 using IOBox.Persistence.Options;
 using IOBox.Workers.Archive.Options;
 using IOBox.Workers.Delete.Options;
-using IOBox.Workers.Expire.Options;
+using IOBox.Workers.ExpireFailed.Options;
+using IOBox.Workers.ExpireNew.Options;
 using IOBox.Workers.Poll.Options;
 using IOBox.Workers.Retry.Options;
 using IOBox.Workers.Unlock.Options;
@@ -21,7 +22,8 @@ internal class SqlServerDbStoreInternal(
     IOptionsMonitor<PollOptions> pollOptionsMonitor,
     IOptionsMonitor<RetryOptions> retryPollOptionsMonitor,
     IOptionsMonitor<UnlockOptions> unlockOptionsMonitor,
-    IOptionsMonitor<ExpireOptions> expireOptionsMonitor,
+    IOptionsMonitor<ExpireNewOptions> expireNewOptionsMonitor,
+    IOptionsMonitor<ExpireFailedOptions> expireFailedOptionsMonitor,
     IOptionsMonitor<ArchiveOptions> archiveOptionsMonitor,
     IOptionsMonitor<DeleteOptions> deleteOptionsMonitor) : IDbStoreInternal
 {
@@ -160,7 +162,7 @@ internal class SqlServerDbStoreInternal(
         transaction.Commit();
     }
 
-    public async Task MarkMessagesAsExpiredAsync(
+    public async Task MarkNewMessagesAsExpiredAsync(
         string ioName,
         CancellationToken cancellationToken = default)
     {
@@ -170,16 +172,9 @@ internal class SqlServerDbStoreInternal(
             WITH MessagesToExpire AS ( 
                 SELECT TOP (@BatchSize) * 
                 FROM {dbOptionsMonitor.Get(ioName).FullTableName} WITH (ROWLOCK, UPDLOCK, READPAST) 
-                WHERE 
-                    (Status = {MessageStatus.New} AND 
-                              ReceivedAt <= DATEADD(MILLISECOND, -@NewMessageTtl, SYSUTCDATETIME())) OR
-                    (Status = {MessageStatus.Failed} AND 
-                              FailedAt <= DATEADD(MILLISECOND, -@FailedMessageTtl, SYSUTCDATETIME()))
-                ORDER BY 
-                    CASE 
-                        WHEN Status = {MessageStatus.New} THEN ReceivedAt
-                        WHEN Status = {MessageStatus.Failed} THEN FailedAt
-                    END
+                WHERE Status = {MessageStatus.New} AND 
+                      ReceivedAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+                ORDER BY ReceivedAt
             ) 
             UPDATE MessagesToExpire 
             SET 
@@ -193,15 +188,57 @@ internal class SqlServerDbStoreInternal(
         using var transaction = connection.BeginTransaction(
             IsolationLevel.ReadCommitted);
 
-        var expireOptions = expireOptionsMonitor.Get(ioName);
+        var expireNewOptions = expireNewOptionsMonitor.Get(ioName);
 
         var command = new CommandDefinition(
             sql,
             new
             {
-                expireOptions.BatchSize,
-                expireOptions.NewMessageTtl,
-                expireOptions.FailedMessageTtl
+                expireNewOptions.BatchSize,
+                expireNewOptions.Ttl
+            },
+            transaction,
+            cancellationToken: cancellationToken);
+
+        await connection.ExecuteAsync(command);
+
+        transaction.Commit();
+    }
+
+    public async Task MarkFailedMessagesAsExpiredAsync(
+        string ioName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ioName, nameof(ioName));
+
+        var sql = $@"
+            WITH MessagesToExpire AS ( 
+                SELECT TOP (@BatchSize) * 
+                FROM {dbOptionsMonitor.Get(ioName).FullTableName} WITH (ROWLOCK, UPDLOCK, READPAST) 
+                WHERE Status = {MessageStatus.Failed} AND 
+                      FailedAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+                ORDER BY FailedAt
+            ) 
+            UPDATE MessagesToExpire 
+            SET 
+                Status = {MessageStatus.Expired}, 
+                ExpiredAt = SYSUTCDATETIME();";
+
+        using var connection = dbContext.CreateConnection(ioName);
+
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction(
+            IsolationLevel.ReadCommitted);
+
+        var expireFailedOptions = expireFailedOptionsMonitor.Get(ioName);
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                expireFailedOptions.BatchSize,
+                expireFailedOptions.Ttl
             },
             transaction,
             cancellationToken: cancellationToken);
@@ -229,9 +266,9 @@ internal class SqlServerDbStoreInternal(
             FROM {table} WITH (ROWLOCK, UPDLOCK, READPAST) 
             WHERE 
                 (Status = {MessageStatus.Processed} AND 
-                          ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
+                 ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
                 (Status = {MessageStatus.Expired} AND 
-                          ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
+                 ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
             ORDER BY 
                 CASE 
                     WHEN Status = {MessageStatus.Processed} THEN ProcessedAt
@@ -305,9 +342,9 @@ internal class SqlServerDbStoreInternal(
                 FROM {dbOptionsMonitor.Get(ioName).FullTableName} WITH (ROWLOCK, UPDLOCK, READPAST) 
                 WHERE 
                     (Status = {MessageStatus.Processed} AND 
-                              ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
+                     ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
                     (Status = {MessageStatus.Expired} AND 
-                              ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
+                     ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
                 ORDER BY 
                     CASE 
                         WHEN Status = {MessageStatus.Processed} THEN ProcessedAt
