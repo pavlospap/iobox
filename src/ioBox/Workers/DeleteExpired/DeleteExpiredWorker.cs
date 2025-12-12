@@ -1,23 +1,23 @@
 ﻿using IOBox.Persistence;
 using IOBox.TaskExecution;
-using IOBox.Workers.Delete.Options;
+using IOBox.Workers.DeleteExpired.Options;
 
 using Microsoft.Extensions.Options;
 
-namespace IOBox.Workers.Delete;
+namespace IOBox.Workers.DeleteExpired;
 
-internal class DeleteWorker(
+internal class DeleteExpiredWorker(
     string ioName,
     IDbStoreInternal dbStoreInternal,
-    IOptionsMonitor<DeleteOptions> optionsMonitor,
-    ITaskExecutionWrapper taskExecutionWrapper) : IDeleteWorker
+    IOptionsMonitor<DeleteExpiredOptions> optionsMonitor,
+    ITaskExecutionWrapper taskExecutionWrapper) : IDeleteExpiredWorker
 {
     public Task ExecuteAsync(CancellationToken stoppingToken)
     {
         return taskExecutionWrapper.WrapTaskAsync(
             ioName,
             cancellationToken =>
-                dbStoreInternal.DeleteMessagesAsync(ioName, cancellationToken),
+                dbStoreInternal.DeleteExpiredMessagesAsync(ioName, cancellationToken),
             optionsMonitor,
             stoppingToken);
     }

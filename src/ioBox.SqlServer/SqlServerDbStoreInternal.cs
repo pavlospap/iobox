@@ -6,7 +6,8 @@ using IOBox.Persistence;
 using IOBox.Persistence.Options;
 using IOBox.Workers.ArchiveExpired.Options;
 using IOBox.Workers.ArchiveProcessed.Options;
-using IOBox.Workers.Delete.Options;
+using IOBox.Workers.DeleteExpired.Options;
+using IOBox.Workers.DeleteProcessed.Options;
 using IOBox.Workers.ExpireFailed.Options;
 using IOBox.Workers.ExpireNew.Options;
 using IOBox.Workers.Poll.Options;
@@ -27,7 +28,9 @@ internal class SqlServerDbStoreInternal(
     IOptionsMonitor<ExpireFailedOptions> expireFailedOptionsMonitor,
     IOptionsMonitor<ArchiveProcessedOptions> archiveProcessedOptionsMonitor,
     IOptionsMonitor<ArchiveExpiredOptions> archiveExpiredOptionsMonitor,
-    IOptionsMonitor<DeleteOptions> deleteOptionsMonitor) : IDbStoreInternal
+    IOptionsMonitor<DeleteProcessedOptions> deleteProcessedOptionsMonitor,
+    IOptionsMonitor<DeleteExpiredOptions> deleteExpiredOptionsMonitor) :
+    IDbStoreInternal
 {
     public async Task<IEnumerable<Message>> GetMessagesToProcessAsync(
         string ioName,
@@ -398,7 +401,7 @@ internal class SqlServerDbStoreInternal(
         transaction.Commit();
     }
 
-    public async Task DeleteMessagesAsync(
+    public async Task DeleteProcessedMessagesAsync(
         string ioName,
         CancellationToken cancellationToken = default)
     {
@@ -408,16 +411,9 @@ internal class SqlServerDbStoreInternal(
             WITH MessagesToDelete AS ( 
                 SELECT TOP (@BatchSize) * 
                 FROM {dbOptionsMonitor.Get(ioName).FullTableName} WITH (ROWLOCK, UPDLOCK, READPAST) 
-                WHERE 
-                    (Status = {MessageStatus.Processed} AND 
-                     ProcessedAt <= DATEADD(MILLISECOND, -@ProcessedMessageTtl, SYSUTCDATETIME())) OR
-                    (Status = {MessageStatus.Expired} AND 
-                     ExpiredAt <= DATEADD(MILLISECOND, -@ExpiredMessageTtl, SYSUTCDATETIME()))
-                ORDER BY 
-                    CASE 
-                        WHEN Status = {MessageStatus.Processed} THEN ProcessedAt
-                        WHEN Status = {MessageStatus.Expired} THEN ExpiredAt
-                    END
+                WHERE Status = {MessageStatus.Processed} AND 
+                      ProcessedAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+                ORDER BY ProcessedAt
             ) 
             DELETE FROM MessagesToDelete;";
 
@@ -428,15 +424,54 @@ internal class SqlServerDbStoreInternal(
         using var transaction = connection.BeginTransaction(
             IsolationLevel.ReadCommitted);
 
-        var deleteOptions = deleteOptionsMonitor.Get(ioName);
+        var deleteProcessedOptions = deleteProcessedOptionsMonitor.Get(ioName);
 
         var command = new CommandDefinition(
             sql,
             new
             {
-                deleteOptions.BatchSize,
-                deleteOptions.ProcessedMessageTtl,
-                deleteOptions.ExpiredMessageTtl
+                deleteProcessedOptions.BatchSize,
+                deleteProcessedOptions.Ttl
+            },
+            transaction,
+            cancellationToken: cancellationToken);
+
+        await connection.ExecuteAsync(command);
+
+        transaction.Commit();
+    }
+
+    public async Task DeleteExpiredMessagesAsync(
+        string ioName,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ioName, nameof(ioName));
+
+        var sql = $@"
+            WITH MessagesToDelete AS ( 
+                SELECT TOP (@BatchSize) * 
+                FROM {dbOptionsMonitor.Get(ioName).FullTableName} WITH (ROWLOCK, UPDLOCK, READPAST) 
+                WHERE Status = {MessageStatus.Expired} AND 
+                      ExpiredAt <= DATEADD(MILLISECOND, -@Ttl, SYSUTCDATETIME())
+                ORDER BY ExpiredAt
+            ) 
+            DELETE FROM MessagesToDelete;";
+
+        using var connection = dbContext.CreateConnection(ioName);
+
+        connection.Open();
+
+        using var transaction = connection.BeginTransaction(
+            IsolationLevel.ReadCommitted);
+
+        var deleteExpiredOptions = deleteExpiredOptionsMonitor.Get(ioName);
+
+        var command = new CommandDefinition(
+            sql,
+            new
+            {
+                deleteExpiredOptions.BatchSize,
+                deleteExpiredOptions.Ttl
             },
             transaction,
             cancellationToken: cancellationToken);

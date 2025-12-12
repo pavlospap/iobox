@@ -1,14 +1,13 @@
 ﻿using IOBox.TaskExecution.Options;
 
-namespace IOBox.Workers.Delete.Options;
+namespace IOBox.Workers.DeleteExpired.Options;
 
 /// <summary>
-/// Represents configuration options related to the deleting of processed or 
-/// expired messages.
+/// Represents configuration options related to the deleting of expired messages.
 /// </summary>
-public class DeleteOptions : ITaskExecutionOptions
+public class DeleteExpiredOptions : ITaskExecutionOptions
 {
-    internal const string Section = "Delete";
+    internal const string Section = "DeleteExpired";
 
     /// <summary>
     /// Indicates whether this worker is enabled and should perform its task.
@@ -42,20 +41,11 @@ public class DeleteOptions : ITaskExecutionOptions
     public int BatchSize { get; set; } = 1000;
 
     /// <summary>
-    /// The time-to-live (TTL), in milliseconds, for processed messages. After 
-    /// this period, processed messages will be deleted.
-    /// Must be greater than or equal to <c>0</c>.
-    /// If set to <c>0</c>, no automatic deletion of processed messages will occur.
-    /// Default value is <c>1,800,000 ms (30 min)</c>.
-    /// </summary>
-    public int ProcessedMessageTtl { get; set; } = 1_800_000;
-
-    /// <summary>
     /// The time-to-live (TTL), in milliseconds, for expired messages. After 
     /// this period, expired messages will be deleted.
     /// Must be greater than or equal to <c>0</c>.
     /// If set to <c>0</c>, no automatic deletion of expired messages will occur.
     /// Default value is <c>3,600,000 ms (1 hour)</c>.
     /// </summary>
-    public int ExpiredMessageTtl { get; set; } = 3_600_000;
+    public int Ttl { get; set; } = 3_600_000;
 }
